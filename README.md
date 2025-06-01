@@ -1,56 +1,91 @@
 # Hybrid Search with Reranking and Filtering
 
-Advanced hybrid search combining **dense**, **sparse**, and **late interaction** embeddings with Qdrant vector database for superior search quality and multi-tenant security.
+A comprehensive implementation of advanced hybrid search combining multiple embedding approaches for superior text retrieval performance.
+
+## Overview
+
+This notebook demonstrates a production-ready hybrid search system that combines three embedding techniques:
+
+- **Dense Embeddings** - Semantic search using neural networks for conceptual similarity
+- **Sparse Embeddings** - Keyword-based search via BM25 for exact term matching  
+- **Late Interaction Embeddings** - Token-level precision using ColBERT for reranking
+
+The system uses Qdrant vector database for scalable storage and retrieval, with multi-tenant filtering capabilities.
 
 ## Features
 
-- **Multi-Modal Search**: Dense (semantic) + Sparse (keyword) + Late interaction (precision)
-- **Hybrid Retrieval**: Prefetch with dense/sparse, rerank with late interaction
-- **Multi-Tenant**: Secure user filtering with indexed isolation
-- **Production-Ready**: Scalable Qdrant architecture with batch processing
+- **Multi-Modal Search**: Combines semantic and keyword-based retrieval
+- **Advanced Reranking**: Uses ColBERT for fine-grained relevance scoring
+- **Multi-Tenant Security**: User-based filtering with indexed tenant fields
+- **GPU Acceleration**: Optimized batch processing with CUDA support
+- **Production Ready**: Scalable architecture with Qdrant Cloud integration
+
+## Dataset
+
+Uses 1 million arXiv paper abstracts from the [Hugging Face dataset](https://huggingface.co/datasets/bluuebunny/arxiv_abstract_embedding_mxbai_large_v1_milvus_binary) for demonstration.
+
+## Requirements
+
+```bash
+pip install qdrant-client fastembed fastembed-gpu tqdm polars torch rerankers
+```
+
+## Setup
+
+1. **Qdrant Cloud**: Create a cluster and obtain endpoint/API key
+2. **Environment**: Configure CUDA for GPU acceleration (optional)
+3. **Credentials**: Set `QDRANT_ENDPOINT` and `QDRANT_API_KEY` environment variables
 
 ## Architecture
 
 ```
-Query → [Dense + Sparse Prefetch] → [Late Interaction Rerank] → [User Filter] → Results
+Query → [Dense + Sparse Embeddings] → Hybrid Search → ColBERT Reranking → Results
 ```
 
-## Quick Start
+### Workflow
 
-### Installation
-```bash
-pip install qdrant-client fastembed tqdm polars
-```
-
-## Embedding Models
-
-| Type | Model | Purpose | Output |
-|------|-------|---------|--------|
-| **Dense** | all-MiniLM-L6-v2 | Semantic similarity | 384D vectors |
-| **Sparse** | Qdrant/bm25 | Keyword matching | Variable sparse |
-| **Late Interaction** | colbertv2.0 | Precise reranking | Multi-vector |
+1. **Embedding Generation**: Create dense and sparse vectors for documents
+2. **Index Creation**: Store multi-vector points in Qdrant with user metadata
+3. **Hybrid Retrieval**: Combine dense and sparse search for candidate documents
+4. **Filtering**: Apply user-based security filters
+5. **Reranking**: Use ColBERT for final relevance scoring
 
 ## Performance
 
-| Operation | Time (1K docs) |
-|-----------|----------------|
-| Dense embeddings | ~20 seconds |
-| Sparse embeddings | ~1 second |
-| Late interaction | ~3-4 minutes |
+- **Dense Embeddings**: ~20 seconds per 1000 docs (CPU)
+- **Sparse Embeddings**: ~1 second per 1000 docs (CPU)
+- **GPU Acceleration**: Significantly faster with CUDA support
 
-## Dataset
+## Key Components
 
-Uses ArXiv paper abstracts from [Hugging Face](https://huggingface.co/datasets/bluuebunny/arxiv_abstract_embedding_mxbai_large_v1_milvus_binary) for scientific text retrieval demonstration.
+- **FastEmbed**: Lightweight embedding generation
+- **Qdrant**: High-performance vector database
+- **ColBERT**: Token-level reranking model
+- **Binary Quantization**: Memory-efficient storage
 
-## Use Cases
+## Usage Example
 
-- Enterprise document search
-- E-commerce product discovery
-- Scientific literature retrieval
-- Customer support knowledge bases
+```python
+# Query with user filtering
+query = "What are the most interesting galaxies in the universe?"
+target_user_id = "user_3"
+
+# Hybrid search with reranking returns top 50 most relevant results
+```
+
+## Future Enhancements
+
+- Query-time filtering optimization for better performance
+- Embedding caching layer for frequently accessed content
+- LLM integration for RAG capabilities for better user experience
+- Parallel processing improvements for better performance
 
 ## References
 
-- [Qdrant Hybrid Search](https://qdrant.tech/documentation/advanced-tutorials/reranking-hybrid-search/)
+- [Qdrant Hybrid Search Documentation](https://qdrant.tech/documentation/advanced-tutorials/reranking-hybrid-search/)
 - [FastEmbed Library](https://github.com/qdrant/fastembed)
-- [ColBERT Paper](https://arxiv.org/abs/2004.12832)
+- [ColBERT Reranking](https://github.com/stanford-futuredata/ColBERT)
+
+---
+
+*Last updated: June 1, 2025*
